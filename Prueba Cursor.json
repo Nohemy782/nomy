@@ -1,0 +1,1840 @@
+{
+  "name": "Prueba Cursor",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": false
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -1552,
+        336
+      ],
+      "id": "c1fa877e-9276-45aa-a82c-28577485dc2b",
+      "name": "Telegram Trigger",
+      "webhookId": "eda12ae7-26ed-42e6-814b-8c952ea1bc0b",
+      "credentials": {
+        "telegramApi": {
+          "id": "zbKqKb4AfrvVrjwj",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "c4594998-9a3c-4904-a704-26d39f871188"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "43d05253-1936-447e-a430-af0388579b86",
+                    "leftValue": "={{ $json.message.voice.file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e0a703d9-20df-4517-accf-80dda2c9c107",
+                    "leftValue": "={{ $json.message.photo[2].file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Imagen"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5ce9841d-3d99-48a1-ac21-bae5c6d4568f",
+                    "leftValue": "Error",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Error"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1312,
+        320
+      ],
+      "id": "e3ef4bc2-36b8-485e-bd73-24f264f85eac",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d9966207-a132-4311-a656-f56a46a72164",
+              "name": "Texto",
+              "value": "={{ $json.message.text }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -912,
+        224
+      ],
+      "id": "19fa0608-bd6e-4b0a-9c37-ad93216ef4c5",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $('Telegram Trigger').item.json.message.voice.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -992,
+        416
+      ],
+      "id": "4f36b10c-6c46-419f-9dba-947a096ea321",
+      "name": "Telegram",
+      "webhookId": "74535a95-088a-4e2f-a8bf-9ea012b0da67",
+      "credentials": {
+        "telegramApi": {
+          "id": "zbKqKb4AfrvVrjwj",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Texto }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "\nTu función es analizar el mensaje de un usuario y extraer información precisa sobre su consulta relacionada con entregas de medicamentos y seguir detalladamente las instrucciones proporcionadas.\n\nAnaliza cuidadosamente el texto del usuario y proporciona la siguiente información:\nEl nombre del municipio o zona mencionado (si lo hay).\n\n\nEl tipo de entrega que aplica para esa zona solo si detecta la intención de conocer fechas de entregas en el municipio exacto mencionado, horarios de entregas y puntos de entrega,(No aplica si menciona una zona antes del municipio como por ejemplo: ¿Los envíos llegan a la aldea El Salitre de Sonsonate?)por ejemplo:\n- “¿Quiero conocer las entregas en Metapan?”  \n- “¿Cuáles son los puntos de entrega en San Luis Talpa?”  \n- “¿Cuáles son los horarios de entrega en Sonsonate?”  \n- “¿Cuáles son los horarios de entrega en Apaneca?”  \n- “¿Cuáles son las próximas fechas de entrega en Ataco.?” \n- “¿Cuáles son las fechas de entrega en Ataco?” \n- “¿Está disponible Santa Rosa de Lima el próximo sábado?”\n- “¿Qué días hay entregas en Santa Rosa de Lima?”\n- “¿Qué puntos de entrega tenemos en Chirilagua??”\n\n\n\n\n\n\"repartidor\" → si coincide con alguna de estas zonas:\n Nuevo Cuscatlán, San Salvador Centro, Mejicanos, San Marcos hasta la Gasolinera Uno, Merliot, Autopista a Comalapa, Cuscatancingo, Soyapango, Ilopango, Antiguo Cuscatlán, Apopa hasta la Alcaldía, Santa Tecla, San Martín, Los Planes Hospital Zaldaña, Planes de Renderos hasta el Mirador, Lourdes Colon.\n\n\n\"delivery\" → si coincide con alguna de estas zonas:\n San Vicente Centro, Usulutan Centro, San Miguel Centro, Sonsonate Centro, Santa Ana Centro.\n\n\"encomienda\" → si coincide con alguna de estas zonas:\n Metapán, Quelepa, Apaneca, Ataco, Juayua, Atiquizaya, Chalchuapa, Ahuachapán, Ciudad Real, El Congo, Quezaltepeque, Candelaria de La Frontera, Sensuntepeque, Ilobasco, La Unión, Osicala, Perquín, Ciudad El Triunfo, San Marcos Lempa, Puerto el Triunfo, Ciudad Barrios, Chinameca, Moncagua, Chapeltique, Pasaquina, Armenia, Lolotique, San Julián, San Francisco Gotera, Anamoros, Lislique, Jucuapa, Corinto, San Rafael Cedros, Tepetitán, Verapaz, Guadalupe, Apastepeque, San Sebastián(Sanvi), Santo Domingo, Tejutepeque, La Laguna, El Coyolito, Comalapa, Nueva Concepción, San Pablo Tacachico, Desvío de Amayo, Agua Caliente, Suchitoto, Chalatenango, Guazapa, San Rafael, San Ignacio, Citalá, Frontera El Poy, Tejutla, El Paraíso, La Reina (chalate), Dulce Nombre de María, La Palma, Concepción Quezalte, El Refugio, Ciudad Marsella, Ciudad Versalles, San Juan Opico, Ciudad Arce, Ateos, Cara Sucia, Izalco, Puente Arce, Los Naranjos, Olocuilta, Cuyultitán, Sonzacate, Santa Cruz Michapa, San Bartolomé Perulapía, Cojutepeque, San Pedro Perulapán, Tonacatepeque, Santiago Texacuangos, Las Isletas, Tapalhuaca, Costa del Sol, Rosario de la Paz, San Antonio Masahuat, San Juan Nonualco, San Juan Talpa, Santa María Ostuma, Santiago Nonualco, San Luis Talpa, San Luis La Herradura, San Pedro Masahuat, San Pedro Nonualco, San Rafael Obrajuelo, Tecoluca, Paraíso de Osorio, Santa Cruz Analquito, San Emigdio, San Juan Tepezontes, San Miguel Tepezontes, San Ramón, Panchimalco, Istagua, Rosario de Mora, Metalío, Zacatecoluca, San Alejo, Chirilagua, Intipucá, Santa Rosa de Lima, Jocoro, Jiquilisco, Delicias de Concepción, Sociedad, Cacaopera, Playa Las Tunas, Polorós, Meanguera, Santa Elena, San Rafael Oriente, Nueva Esparta, San Esteban Catarina, San Lorenzo, Aguilares, Santa Rita, Coatepeque, Concepción Quezaltepeque, El Paisnal, Caluco, El Tránsito, El Cuco, Nueva Guadalupe, Mercedes Umaña, Montelimar, Turin, Zaragoza, Puerto de La Libertad, Concepción de Oriente, Estanzuelas, San Jorge, Tacachico, San Isidro, Santiago de María, Jayaque, Tepecoyo, Sacacoyo, Tamanique, San Ildefonso, Ingenio La Cabaña, Nahuizalco, Acajutla, Nejapa, Reubicación 2, Guaymango, Salcoatitán, Sesori, San Luis de la Reina, El Carmen (La Unión), Conchagua, Dolores, San José Villanueva, San Simón, Jujutla, San Antonio Pajonal, Metrolourdes, Santo Tomas, Texistepeque, Berlín, Desvío Tierra Blanca, Desvio de San Juan Opico\n\n\"Consulta General\" → si no coincide con ninguna de las anteriores o es una consulta que no está relacionada con conocer puntos de entrega o fechas de encomienda, delivery, repartidor o code plus de ubicación o conocer. Recuerda que todo el resto de consultas se detectan como Consulta General, incluyendo la mención de calles avenidas o colonias(incluye si el texto del usuario no tiene sentido)\n\n\n\"ubicacion\" → si coincide con un code plus similar a este: J6W8+39J, Avenida Jose Maria Cornejo, San Vicente o coordenadas similares a estas: 13.733161, -89.186543, 13°41'49.3\"N 89°12'08.4\"W\n\n\n#Nota importante: usa coincidencia parcial o parecida en los nombres (no requiere ser exacto, ya que puede ser mal escrita por el usuario).\n\n3. La **intención de la consulta**:\n   - \"consulta_entrega\" → si pide fechas, puntos o disponibilidad\n   - \"consulta_tarifa\" → si pregunta por costos\n   - \"consulta_general\" → si solo pide información básica o está explorando\n   - \"no_identificada\" → si no se entiende la intención\n4. Las **palabras clave** más importantes del mensaje\n5. El **mensaje original completo del usuario**\n\n🧠 MEMORIA Y MÁS FECHAS:\n\n6. Si el mensaje es una confirmación como \"sí, quiero más fechas\", \"muéstrame otras fechas\", \"Si, quiero conocer más opciones\", \"Dame más opciones\",  o similar, debes:\n   - Establecer `\"intencion\": \"confirmacion_mas_fechas\"`\n   - Mantener el `\"zona_detectada\"` y `\"tipo_entrega\"` que se usaron en la consulta anterior\n   - Añadir un nuevo campo `\"fechas_mostradas\"` con el valor `3` si es la primera vez que solicita más, o el valor incrementado en múltiplos de 3 (6, 9, 12…) si continúa pidiendo más.\n\n7. Si es una consulta normal inicial, agrega `\"fechas_mostradas\": 0`.\n\n\n8. MEMORIA GENERAL: \"Si el mensaje anterior contenía una zona o ciudad válida, guarda esa zona en la memoria como zona_actual. Si el usuario hace una pregunta de seguimiento sin mencionar una nueva zona (por ejemplo: '¿cuánto cuesta?', '¿cuáles son los horarios?', '¿qué días entregan?'), usa la zona_actual como contexto para responder. No olvides actualizar zona_actual cada vez que detectes una nueva zona.\"\n\n\n9. Si el mensaje del usuario contiene coordenadas (en formato decimal como 13.733161, -89.186543 o en formato de grados como 13°41'49.3\"N 89°12'08.4\"W), debes:\n\n- Detectar que son coordenadas.\n- Extraerlas **exactamente como están escritas** y colocarlas en el campo `\"ubicacion\"`.\n- No intentes clasificarlas como zona.\n- En este caso, deja `\"zona_detectada\": \"\"` y `\"tipo_entrega\": \"desconocido\"`, a menos que el mensaje también pida fechas u horarios.\n\n\n📌 RESPONDE solo en el siguiente formato JSON:\n\n```json\n{\n  \"consulta_original\": \"Texto completo del usuario\",\n  \"zona_detectada\": \"Nombre del municipio o zona\",\n  \"tipo_entrega\": \"encomienda | delivery | repartidor | desconocido\",\n \"consulta_general\":  \"información que no sea de puntos de entregas o fechas | consultas no identificadas  | coordenadas | desconocido,\",\n \"ubicacion\": \"coordenadas detectadasen el texto\",\n  \"intencion\": \"consulta_entrega | confirmacion_mas_fechas | consulta_general | no_identificada\",\n\"consulta_encomendista\": \"Día | fragmento de destino completo sin omitir nada\",\n  \"palabras_clave\": [\"palabra1\", \"palabra2\", \"...\"],\n  \"fechas_mostradas\": 0\n}\nSi el usuario no pregunta por fechas, ni menciona una zona específica, ni está confirmando más fechas, y en su lugar hace una pregunta amplia o si menciona un zona o muchas pero no tiene intención de conocer una en especifico o horarios o puntos de entrega, como:  \n- “¿Hacen envíos en todo el país?”  \n- “¿Trabajan los domingos?”  \n- “¿Qué zonas tienen disponibles?”  \n- “¿Pueden entregar con repartidor o delivery en Nejapa?”  \n- “¿Cuáles son los horarios de los deliverys?” \n- “¿Sonsonate es con repartidor o encomiendas?”   \n- “¿Cuánto cuesta el envío a Ataco?”  \n- “¿Metapan es con repartidor o con encomienda?”  \n- “¿Se puede entregar con repartidor en San Miguel?”  \n- “¿Se puede entregar en Plaza mundo apopa?”  \n- “¿Se puede entregar en calle las Amapolas?”  \n- “¿Hay entregas en Ciudad Delgado?”\n- “¿Cuál es el costo de envío Ciudad delgado?”\n- “¿Podemos hacer envíos al cantón El Jícaro, municipio de Sensuntepeque, departamento de Cabañas? ¿Cuál es el precio de esa opción?”\n- “¿Se puede entregar en la residencial escalón de santa ana?”\n- “¿Los envíos llegan a la aldea El Salitre de Sonsonate?”\n\nEntonces, responde con:  \n```json\n{\n  \"zona_detectada\": \"\",\n  \"tipo_entrega\": \"\",\n  \"intencion\": \"consulta_general\",\n  \"ubicacion\": \"\",\n  \"consulta_general\": \"\",\n  \"fechas_mostradas\": 0,\n \"consulta_original\": \"Texto completo del usuario\"\n}\n\n\n\n\n\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -368,
+        224
+      ],
+      "id": "5b9a061c-99b6-444f-afb1-e78c75993a77",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {
+          "frequencyPenalty": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -368,
+        400
+      ],
+      "id": "70731ab7-90e2-4c20-ae14-146a9c4c899f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "MnXmvEP7FG1Easiv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -832,
+        416
+      ],
+      "id": "d538f85f-1769-49c2-885e-e66af620a318",
+      "name": "OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "MnXmvEP7FG1Easiv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "=customKey",
+        "sessionKey": "{{ $workflow.id }}",
+        "contextWindowLength": 2
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -256,
+        400
+      ],
+      "id": "3747175d-3730-4350-89b4-fe3e0c586705",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "AF0oH1L8VHVHaki4",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"] }}\n{{ 5651886116}}{{ $json.output }}",
+        "text": "={{ $json['Respuesta del agente'] }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2160,
+        704
+      ],
+      "id": "e2f6eb31-93b6-486c-80f4-d3f58e80aad0",
+      "name": "Telegram2",
+      "webhookId": "e2ab9307-0776-4e8c-a877-4f9173659752",
+      "alwaysOutputData": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "zbKqKb4AfrvVrjwj",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1C-7WU-RXRcru8H63QzIegnBSIUIAbBKMvZqxLSfopbw",
+          "mode": "list",
+          "cachedResultName": "REGISTRO 45 - NOHEMY WEB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1C-7WU-RXRcru8H63QzIegnBSIUIAbBKMvZqxLSfopbw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 513599299,
+          "mode": "list",
+          "cachedResultName": "Horarios",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1C-7WU-RXRcru8H63QzIegnBSIUIAbBKMvZqxLSfopbw/edit#gid=513599299"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        464,
+        176
+      ],
+      "id": "19901bf7-0946-47a8-a82a-8b8f9262dbfc",
+      "name": "Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "g5QJC2kVpTTyiUbS",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6bba4441-8d0d-40bc-86b2-dc2127383974",
+                    "leftValue": "={{ $json.tipo_entrega }}",
+                    "rightValue": "encomienda",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Encomienda"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "54bb5aad-ed70-4911-8d61-9310e45e4dcf",
+                    "leftValue": "={{ $json.tipo_entrega }}",
+                    "rightValue": "repartidor",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Repartidor"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5f864544-ace9-4f81-91d9-647e14d568af",
+                    "leftValue": "={{ $json.ubicacion }}",
+                    "rightValue": "ubicacion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ubicacion"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d2815109-4723-41c2-ae43-a2d5dc991072",
+                    "leftValue": "={{ $json.tipo_entrega }}",
+                    "rightValue": "delivery",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Delivery"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a84c44fd-9019-4f19-8650-266d3317b84a",
+                    "leftValue": "={{ $json.intencion }}",
+                    "rightValue": "consulta_general",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Consulta general"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "17da1081-81f6-4226-a9bc-10961956e757",
+                    "leftValue": "={{ $json.intencion }}",
+                    "rightValue": "consulta_entrega",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Consulta"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        80,
+        560
+      ],
+      "id": "80feb707-612c-422a-987c-838759aba571",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const zona = $json.zona_detectada || \"\";\nconst rows = $input.all().map(item => item.json); // todos los items recibidos por este nodo\n\n// Función para limpiar tildes\nfunction normalizar(texto) {\n  return texto?.toLowerCase().normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\").trim();\n}\n\nconst zonaNormalizada = normalizar(zona);\n\n// Filtrar filas que comienzan con la zona detectada\nconst filtrados = rows.filter(r => {\n  const destino = normalizar(r.DESTINO || \"\");\n  return destino.startsWith(zonaNormalizada);\n});\n\n// Resultado simplificado\nconst resultados = filtrados.map(r => ({\n  dia: r.DIA || \"\",\n  destino: r.DESTINO || \"\"\n}));\n\nreturn resultados.map(r => ({ json: r }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        176
+      ],
+      "id": "5c7c7b14-c551-4d09-b9cc-9f317bf86b8d",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "content": "## Extrae los datos importantes de Agente IA",
+        "height": 280,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        48,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "4e5eef12-b111-4dcc-ba23-ec90f334841e",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Obtener zona detectada\nconst zona = $('Code4').first()?.json?.zona_detectada || $('Switch1').first()?.json?.zona_detectada || \"\";\n\n// 2. Normalizador de texto\nconst normalizar = texto =>\n  texto.toLowerCase()\n       .normalize(\"NFD\")\n       .replace(/[\\u0300-\\u036f]/g, \"\")\n       .replace(/[^a-z0-9 ]/g, \"\")\n       .trim();\n\nconst zonaNorm = normalizar(zona);\n\n// 3. Obtener todos los registros del Sheet\nconst registros = $input.all().map(i => i.json);\n\n// 4. Buscar coincidencia flexible\nconst match = registros.find(r => {\n  const zonaSheet = normalizar(r[\"Zonas de entrega\"]);\n  return zonaSheet.includes(zonaNorm) || zonaNorm.includes(zonaSheet);\n});\n\n// 5. Si no se encuentra coincidencia\nif (!match) {\n  return [{\n    json: {\n      text: `⚠️ No se encontró información de entregas configuradas para \"${zona}\".`\n    }\n  }];\n}\n\n// 6. Construir mensaje\nconst mensaje = `📦 Entregamos en *${match[\"Zonas de entrega\"]}*:\n📅 *Días:* ${match[\"Días de Entrega\"]}\n⏰ *Horario:* ${match[\"Horario de entrega\"]}\n💵 *Costo:* ${match[\"Costos de envío\"]}\n🚚 *Servicio:* ${match[\"Nombre del Servicio\"]}`;\n\n// 7. Devolver texto\nreturn [{\n  json: {\n    text: mensaje\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        624
+      ],
+      "id": "c0659179-1e82-447c-ba1f-a012edd56d26",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "content": "## Horarios de encomiendas",
+        "height": 280,
+        "width": 220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        400,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "9bc882a5-6c51-4d2c-b526-b3c76e21151d",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Obtiene dias y destinos",
+        "height": 280,
+        "width": 200,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        640,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "e9c7e9b9-1428-4573-b621-a8283a868c28",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Consultas generales ",
+        "height": 320,
+        "width": 1140,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        848
+      ],
+      "typeVersion": 1,
+      "id": "989b2f46-9806-4ed9-aca7-6f626c1f208d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Encomienda",
+        "height": 400,
+        "width": 1800,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "4b123e99-0cc3-4a41-9349-18557a7cf91f",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Repartidor y delivery",
+        "height": 360,
+        "width": 920,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "88a50ffa-1641-4f56-8e46-8ccf392f0109",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🧠 Obtener y limpiar el texto JSON desde el AI Agent\nconst raw = $json[\"output\"] || \"\";\nconst clean = raw.replace(/```json|```/g, '').replace(/\\\\n/g, '').trim();\nlet parsed;\n\ntry {\n  parsed = JSON.parse(clean);\n} catch (error) {\n  parsed = {};\n}\n\n// 🆕 Procesar campo consulta_encomendista si existe\nlet dia_consulta = \"\";\nlet fragmento_destino = \"\";\n\nif (parsed.consulta_encomendista) {\n  const partes = parsed.consulta_encomendista.split(\"|\");\n  dia_consulta = partes[0]?.trim().toUpperCase() || \"\";\n  fragmento_destino = partes[1]?.trim() || \"\";\n}\n\n// 🔍 ✅ NUEVO: Verificar si existe \"ubicacion_texto\"\nif (parsed.ubicacion_texto && parsed.ubicacion_texto.trim() !== \"\") {\n  return [\n    {\n      json: {\n        ubicacion_texto: parsed.ubicacion_texto.trim()\n      }\n    }\n  ];\n}\n\n// ✅ Armar objeto resultado con los campos necesarios (continúa normal si no hay ubicacion_texto)\nconst resultado = {\n  zona_detectada: parsed.zona_detectada?.trim() || \"\",\n  tipo_entrega: parsed.tipo_entrega?.toLowerCase().trim() || \"desconocido\",\n  fechas_mostradas: (parsed.intencion === \"confirmacion_mas_fechas\" && parsed.fechas_mostradas !== undefined)\n    ? parsed.fechas_mostradas\n    : 0,\n  intencion: parsed.intencion || \"\",\n  ubicacion: parsed.ubicacion?.trim() || \"\",\n  consulta_original: parsed.consulta_original?.trim() || \"\",\n\n  // 🆕 Agregamos los campos extraídos desde consulta_encomendista\n  dia_consulta,\n  fragmento_destino\n};\n\n// ✅ Retornar todo como un solo objeto plano\nreturn [{ json: resultado }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        176
+      ],
+      "id": "60656728-d5d4-475e-81eb-7f49b5f0d032",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Eres un asistente profesional que informa entregas de encomienda en El Salvador. El usuario necesita conocer las próximas 3 fechas disponibles para su zona. Utiliza el siguiente formato exacto para mostrarle las opciones:  Ejemplo del formato de salida requerido:  Te comparto las fechas disponibles para Atiquizaya:   📦 Costo de envío: $1.00      📌 domingo 21 de abril de 2024    Atiquizaya, afuera del parqueo de Pizza Hut 12:40 pm a 1:00 pm     📌 lunes 22 de abril de 2024    Atiquizaya, afuera del parqueo de Pizza Hut 1:00 pm a 1:15 pm     📌 martes 23 de abril de 2024    Atiquizaya, afuera del parqueo de Pizza Hut 1:00 pm a 1:15 pm      ¿Te gustaría conocer más fechas disponibles para Atiquizaya?   🔁 Reglas que debes seguir: - Reemplaza “Atiquizaya” por el nombre de la zona proporcionada en el contenido. - Extrae el costo de envío correspondiente (ej. $1.00). - Usa exactamente el icono📌. - Respeta el salto de línea entre fecha, lugar y hora.(También el costo de envío) - Muestra 3 fechas en orden cronológico. - No agregues saludos ni explicaciones. - Finaliza con la pregunta: “¿Te gustaría conocer más fechas disponibles para [zona]?”   IMPORTANTE: COSTO DE ENVÍO $1 - Sigue las indicaciones proporcionadas Contenido a formatear: {{ $json.text }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        1360,
+        176
+      ],
+      "id": "3f3265e0-8e4b-4905-88f0-72bf3058ace6",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {
+          "frequencyPenalty": 0.4,
+          "responseFormat": "text",
+          "temperature": 0.1,
+          "maxRetries": 2,
+          "topP": 0.8
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1664,
+        224
+      ],
+      "id": "e5b144cf-775f-46fd-a967-3498789e64a8",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "MnXmvEP7FG1Easiv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "🧠 Rol del Asistente Interno Eres un asistente interno que colabora con un agente de ventas humano. Tu tarea es redactar respuestas claras, útiles y amables a las preguntas generales que hacen los agentes de ventas, sobre los servicios de entrega de medicamentos naturales en El Salvador.   📌 Importante:  No estás hablando directamente con el cliente, sino asistiendo a un agente humano, quien luego copiará y enviará tu respuesta. - Identifica las consultas de forma intuitiva.     #Instrucciones: tienes que transmitir al usuario la información de entrega en la zona solicitada de forma correcta y precisa, sin omitir ningún detalle, proporcionando la información real.  Recuerda que los deliverys, entregan en cabeceras departamentales y en algunas zonas aledañas del centro del departamento, esto por un costo adicional.   📩 Consulta del cliente: {{ $json.text }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        960,
+        624
+      ],
+      "id": "e672e465-6977-4515-b9f5-d5fdeca890ef",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1264,
+        672
+      ],
+      "id": "29bd2f99-bdf2-42c7-a0d6-9702714304fe",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "MnXmvEP7FG1Easiv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ✅ Zona actual y anterior (de Switch1 y memoria o paso anterior)\nconst zonaActual = $('Switch1').first()?.json?.zona_detectada || \"\";\nconst zonaAnterior = $input.item.json.zona_detectada_anterior || \"\";\nconst intencion = $('Switch1').first()?.json?.intencion || \"\";\n\n// ✅ Decidir zona final (si el usuario solo dijo \"sí\", usamos la zona anterior)\nconst zonaFinal = (intencion === \"confirmacion_mas_fechas\" && !zonaActual)\n  ? zonaAnterior\n  : zonaActual;\n\n// 🔤 Normalizar zona\nconst zonaNormalizada = zonaFinal.toLowerCase()\n  .normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\").trim();\n\n// 📋 Cargar todos los registros (días y destinos)\nconst registros = items.map(i => i.json);\n\n// 🔍 Filtrar por zona\nconst filtrados = registros.filter(r => {\n  const destinoNormalizado = (r.destino || \"\").toLowerCase()\n    .normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\").trim();\n  return destinoNormalizado.startsWith(zonaNormalizada);\n});\n\n// ⚠️ Si no hay resultados, seguir mostrando todos los registros de esa zona\nif (filtrados.length === 0 && zonaFinal) {\n  return registros\n    .filter(r => {\n      const destinoNormalizado = (r.destino || \"\").toLowerCase()\n        .normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\").trim();\n      return destinoNormalizado.startsWith(zonaNormalizada);\n    })\n    .map(r => ({\n      json: {\n        dia: r.dia,\n        destino: r.destino,\n        zona_detectada_anterior: zonaFinal\n      }\n    }));\n}\n\n// ✅ Salida limpia\nreturn filtrados.map(r => ({\n  json: {\n    dia: r.dia,\n    destino: r.destino,\n    zona_detectada_anterior: zonaFinal\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        176
+      ],
+      "id": "8610abb7-c948-42a9-8e44-53b905536fd3",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "content": "## Obtiene los destinos solicitados \n",
+        "height": 280,
+        "width": 200
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        864,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "52d9fb42-996a-4b15-a74e-d643644c26ed",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🔸 Zona y fechas mostradas\nconst zona = $('Switch1').first()?.json?.zona_detectada || \"\";\nconst offset = $('Switch1').first()?.json?.fechas_mostradas \n            || $('Code4').first()?.json?.fechas_mostradas \n            || 0;\n\nconst registros = $input.all().map(i => i.json);\n\n// 🔤 Normalizar texto\nconst normalizar = (texto) =>\n  texto?.toLowerCase()\n    .normalize(\"NFD\")\n    .replace(/[\\u0300-\\u036f]/g, \"\")\n    .replace(/[^a-z0-9 ]/g, \"\")\n    .trim() || \"\";\n\nconst zonaNormalizada = normalizar(zona);\n\n// 🔍 Filtrar registros por zona\nconst filtrados = registros.filter(r => {\n  const destinoNormalizado = normalizar(r.destino);\n  return destinoNormalizado.includes(zonaNormalizada);\n});\n\n// 📆 Ciclo de corte\nconst hoy = new Date();\nconst diaHoy = hoy.getDay();\nlet fechaInicio = new Date(hoy);\n\nif (diaHoy >= 3 && diaHoy <= 5) {\n  fechaInicio.setDate(hoy.getDate() + ((6 + 7 - diaHoy) % 7)); // Siguiente sábado\n} else {\n  fechaInicio.setDate(hoy.getDate() + ((3 + 7 - diaHoy) % 7)); // Siguiente miércoles\n}\n\nconst diasOrden = [\"domingo\", \"lunes\", \"martes\", \"miércoles\", \"jueves\", \"viernes\", \"sábado\"];\n\nfunction proximaFecha(diaTexto, desdeFecha, repeticiones = 0) {\n  const indexObjetivo = diasOrden.indexOf(diaTexto.toLowerCase());\n  const base = new Date(desdeFecha);\n  const actual = base.getDay();\n  const diasSumar = ((indexObjetivo - actual + 7) % 7) + repeticiones * 7;\n  base.setDate(base.getDate() + diasSumar);\n  return base;\n}\n\n// 🧠 Generar todas las fechas posibles\nlet resultados = [];\nlet repeticiones = 0;\nwhile (resultados.length < offset + 10) {\n  for (const r of filtrados) {\n    const fecha = proximaFecha(r.dia, fechaInicio, repeticiones);\n    resultados.push({\n      fecha,\n      fechaFormateada: fecha.toLocaleDateString(\"es-SV\", {\n        weekday: \"long\", year: \"numeric\", month: \"long\", day: \"numeric\"\n      }),\n      destino: r.destino\n    });\n  }\n  repeticiones++;\n}\n\n// 🔁 Aplicar offset y limitar a 3 nuevas fechas\nconst seleccion = resultados\n  .filter(f => f.fecha >= fechaInicio)\n  .sort((a, b) => a.fecha - b.fecha)\n  .slice(offset, offset + 3);\n\n// ✏️ Armar mensaje visual\nconst mensaje = seleccion.map((f, i) =>\n  `📌 ${f.fechaFormateada}\\n${f.destino}`\n).join(\"\\n\\n\");\n\n// ✅ Devolver mensaje y nuevo offset actualizado\nreturn [{\n  json: {\n    text: mensaje,\n    fechas_mostradas: offset + seleccion.length\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        176
+      ],
+      "id": "c7efe81c-15de-4de1-ac3b-c838e42af0c7",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "content": "## Calcula las fechas",
+        "height": 280,
+        "width": 200,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1088,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "af9c3737-0f9e-440d-89fc-592405cc7cd9",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5e3e545-5c8e-4909-b823-a0263c67766e",
+              "name": "intencion",
+              "value": "={{ $json.intencion }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        512,
+        992
+      ],
+      "id": "9e437fa3-4ddf-46f4-b583-5993a543d93b",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "content": "## Obtiene la informacion de la zona\n",
+        "height": 280,
+        "width": 160,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        768,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "b5df2718-0a37-4c4f-8702-549ee2d52c22",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## Estructura de respuesta\n",
+        "height": 280,
+        "width": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1312,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "1c0f8147-0126-4e51-8f5f-60344287e05e",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "18V165slBpZWLC8nU0-MaKspALEeyJjD0_9g_dmCmqVk",
+          "mode": "list",
+          "cachedResultName": "Entregas con delivery y repartidor",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18V165slBpZWLC8nU0-MaKspALEeyJjD0_9g_dmCmqVk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/18V165slBpZWLC8nU0-MaKspALEeyJjD0_9g_dmCmqVk/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Zonas de entrega",
+              "lookupValue": "={{ $json.zona_detectada }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        592,
+        624
+      ],
+      "id": "c15a9634-aa0d-47cf-861e-0f427fd0d839",
+      "name": "Google Sheets2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "g5QJC2kVpTTyiUbS",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Horarios de Repartidor y Delivery",
+        "height": 280,
+        "width": 200
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        544,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "3d05ce69-44df-4657-8c3a-e599c34c940b",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "content": "## Estructura de respuesta",
+        "height": 280,
+        "width": 420
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        944,
+        496
+      ],
+      "typeVersion": 1,
+      "id": "d780ac45-db2d-406e-a206-3882993cf5ad",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "## Consulta del usuario",
+        "height": 220,
+        "width": 200
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        912
+      ],
+      "typeVersion": 1,
+      "id": "f1e24842-2b70-4b95-bcbc-35948c647755",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "## Estructura de respuesta",
+        "height": 220,
+        "width": 780,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        912
+      ],
+      "typeVersion": 1,
+      "id": "9882bef6-e35e-4897-9047-d55af0a68134",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "content": "## Validacion de datos",
+        "height": 220,
+        "width": 180
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        464,
+        1264
+      ],
+      "typeVersion": 1,
+      "id": "d278aa14-e2e6-4a11-a437-1d14cfd89bf1",
+      "name": "Sticky Note17"
+    },
+    {
+      "parameters": {
+        "content": "## Agente",
+        "height": 420,
+        "width": 360,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -432,
+        128
+      ],
+      "typeVersion": 1,
+      "id": "fcec1e4d-45b9-42e4-8247-96300fb6e30a",
+      "name": "Sticky Note18"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.ubicacion || \"\";\n\n// Intentar primero con formato decimal: \"13.696472, -89.202333\"\nlet regexDecimal = /^(-?\\d+(\\.\\d+)?),\\s*(-?\\d+(\\.\\d+)?)$/;\nlet matchDecimal = raw.match(regexDecimal);\n\nif (matchDecimal) {\n  const lat = parseFloat(matchDecimal[1]);\n  const lng = parseFloat(matchDecimal[3]);\n  return [{ json: { lat, lng, formato: \"decimal\" } }];\n}\n\n// Si no es decimal, intentar con formato DMS: \"13°41'47.3\\\"N 89°12'08.4\\\"W\"\nlet regexDMS = /(\\d{1,3})°(\\d{1,2})'(\\d{1,2}(?:\\.\\d+)?)\"([NS])\\s+(\\d{1,3})°(\\d{1,2})'(\\d{1,2}(?:\\.\\d+)?)\"([EW])/;\nlet matchDMS = raw.match(regexDMS);\n\nif (matchDMS) {\n  function convertToDecimal(deg, min, sec, dir) {\n    let decimal = Number(deg) + Number(min) / 60 + Number(sec) / 3600;\n    return (dir === \"S\" || dir === \"W\") ? -decimal : decimal;\n  }\n\n  const lat = convertToDecimal(matchDMS[1], matchDMS[2], matchDMS[3], matchDMS[4]);\n  const lng = convertToDecimal(matchDMS[5], matchDMS[6], matchDMS[7], matchDMS[8]);\n\n  return [{ json: { lat, lng, formato: \"dms\" } }];\n}\n\n// Si ninguno de los dos formatos es válido\nreturn [{\n  json: { error: \"Ubicación inválida o no se pudo interpretar\" }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        512,
+        1344
+      ],
+      "id": "41e7d6f2-6bad-4fb8-9801-311305424d47",
+      "name": "Code6"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// 1. Coordenadas de entrada\nconst lat = $input.first().json.lat;\nconst lng = $input.first().json.lng;\nconst punto = [lng, lat]; // 🔁 IMPORTANTE: [lng, lat]\n\n// 2. Polígonos\nconst poligonoSanVicente = [\n    [-88.78360787682128, 13.64801136672773],\n    [-88.78681616324575, 13.647039677987067],\n    [-88.78991411433476, 13.64520879860028],\n    [-88.79234606118818, 13.643916333115229],\n    [-88.79267634075588, 13.641764293375346],\n    [-88.79212394387764, 13.639989357021804],\n    [-88.79090851825838, 13.63864459305745],\n    [-88.79035706224674, 13.636600013069184],\n    [-88.7874821772407, 13.635415470812887],\n    [-88.78454882375061, 13.634876721550768],\n    [-88.78266635290018, 13.636706791404436],\n    [-88.7791227326799, 13.637891012796203],\n    [-88.77784877234699, 13.639183387678457],\n    [-88.77762707825487, 13.641014269001545],\n    [-88.77707299487423, 13.643383677032006],\n    [-88.7748567964505, 13.64397674466531],\n    [-88.77363763797968, 13.644461853119111],\n    [-88.7746351093701, 13.64559240306248],\n    [-88.7757988656421, 13.647369467870348],\n    [-88.77951037959262, 13.647259818730078],\n    [-88.78360787682128, 13.64801136672773]\n];\nconst poligonoSanMiguel = [\n    [-88.17352263238016, 13.496088853829193],\n    [-88.18344986648701, 13.495600202628026],\n    [-88.18879407394348, 13.489070908945948],\n    [-88.19305907654673, 13.483492490708556],\n    [-88.19499729430824, 13.47612916191423],\n    [-88.19451132389386, 13.470277161288735],\n    [-88.19461012354938, 13.467915616176228],\n    [-88.19014951730313, 13.466019114183013],\n    [-88.18801494018749, 13.463145037653618],\n    [-88.18331037492236, 13.462696773523092],\n    [-88.18053434576655, 13.461196476778497],\n    [-88.17930243813086, 13.458717615168325],\n    [-88.17242297296468, 13.456612256525531],\n    [-88.16747138891172, 13.456612154835597],\n    [-88.16190050506314, 13.45728941252709],\n    [-88.16134878235296, 13.465711002703998],\n    [-88.1601805717681, 13.471204765861685],\n    [-88.15963689010496, 13.474969954411264],\n    [-88.15669232777608, 13.478509692394866],\n    [-88.15785680526999, 13.481672359293412],\n    [-88.15886287189066, 13.486190943094044],\n    [-88.16119140280878, 13.48761891144926],\n    [-88.16437508508362, 13.489111748831604],\n    [-88.16576148695732, 13.49182254362151],\n    [-88.164758933559, 13.495359284391256],\n    [-88.16979423794449, 13.496033185181773],\n    [-88.17352263238016, 13.496088853829193]\n];\nconst poligonoUsulutan = [\n    [-88.43678076117786, 13.353788086715994],\n    [-88.44231972605556, 13.35070966300745],\n    [-88.44450849721052, 13.348101208699248],\n    [-88.44792967758218, 13.346258492128399],\n    [-88.44951853637349, 13.342394161221307],\n    [-88.44951727171366, 13.338944029203148],\n    [-88.44437465924612, 13.33435395287701],\n    [-88.44149177203076, 13.330717242292067],\n    [-88.43726797721922, 13.329943563692723],\n    [-88.43476015658959, 13.334352913082071],\n    [-88.43354861183029, 13.337984756287753],\n    [-88.42994853085364, 13.341255607565557],\n    [-88.42861176496902, 13.346189759869702],\n    [-88.4288014720959, 13.350169091471969],\n    [-88.43155881285416, 13.35342649823437],\n    [-88.43632117698066, 13.354307818676943],\n    [-88.43678076117786, 13.353788086715994]\n];\nconst poligonoSantaAna = [\n    [-89.5605577952827, 14.0075226025089],\n    [-89.56250856757426, 13.999822222048806],\n    [-89.56473412420735, 13.996716881626668],\n    [-89.56946060854736, 13.996156346432684],\n    [-89.567382030022, 13.988611355851532],\n    [-89.57153836979903, 13.985249033745873],\n    [-89.57430557368116, 13.981487732594644],\n    [-89.57319463662043, 13.97585497493111],\n    [-89.56835423892385, 13.97370270393165],\n    [-89.56378149032427, 13.977049697736689],\n    [-89.55586646697111, 13.979327554320847],\n    [-89.5529390921695, 13.984846716411639],\n    [-89.5463888664746, 13.98606088899733],\n    [-89.54526510906229, 13.993077941960237],\n    [-89.54649538572788, 13.997677499275142],\n    [-89.54941443327402, 14.000381386381562],\n    [-89.55442943811737, 14.00267330132138],\n    [-89.55651733881697, 14.0068589357125],\n    [-89.5605577952827, 14.0075226025089]\n];\nconst poligonoSonsonate = [\n    [-89.71883431615117, 13.735430730965277],\n    [-89.72079309840406, 13.735010709943424],\n    [-89.72112064990012, 13.732362029488655],\n    [-89.72036641711145, 13.730438733380382],\n    [-89.72103023260851, 13.729310233043478],\n    [-89.72385438013895, 13.729787645434058],\n    [-89.72592607108324, 13.727859063933195],\n    [-89.72883127896492, 13.726328254602436],\n    [-89.72908258643473, 13.72390850715108],\n    [-89.73099875492717, 13.720191107193287],\n    [-89.7275056873192, 13.716555302477502],\n    [-89.72301593476482, 13.71478194203425],\n    [-89.71927504811147, 13.71453980945968],\n    [-89.71528650947214, 13.714945217290307],\n    [-89.71296438250933, 13.718016239627246],\n    [-89.71330241764055, 13.72189177981528],\n    [-89.71264493805329, 13.726086299464924],\n    [-89.7103666192713, 13.72874578694092],\n    [-89.70962660255172, 13.732047766573558],\n    [-89.71883431615117, 13.735430730965277]\n];\nconst poligonoSanSalvador = [\n  [-89.20813770997292, 13.750639406702305],\n  [-89.21897398891979, 13.748300349491046],\n  [-89.22740220587849, 13.733563751964581],\n  [-89.23631203523468, 13.721633446845217],\n  [-89.24618508938588, 13.716252914667379],\n  [-89.26207829850753, 13.708532805268348],\n  [-89.25678056213366, 13.702216163378182],\n  [-89.25051960096478, 13.703385924688732],\n  [-89.25003798856656, 13.69192201281642],\n  [-89.24618508938588, 13.688412540298344],\n  [-89.24570347698837, 13.681393438204381],\n  [-89.23173671745668, 13.683967133282962],\n  [-89.22403091909457, 13.661972832001297],\n  [-89.2168067331307, 13.66033487635245],\n  [-89.2170475393291, 13.66641865424242],\n  [-89.2201780199139, 13.673438202782677],\n  [-89.2153618959375, 13.678585738749561],\n  [-89.21199060915431, 13.676713920509712],\n  [-89.20621126038291, 13.676245963623842],\n  [-89.20500722938881, 13.674140146131592],\n  [-89.2110273843586, 13.672034309809106],\n  [-89.2115089967568, 13.664546739310723],\n  [-89.19754223722512, 13.659398896586424],\n  [-89.18574273348324, 13.669694469591064],\n  [-89.18887321406802, 13.673438202782677],\n  [-89.18477950868822, 13.678819714983504],\n  [-89.17201678015064, 13.688880472992594],\n  [-89.16431098178855, 13.7015143037967],\n  [-89.15805002061967, 13.714381396303096],\n  [-89.16190291980033, 13.731692371686762],\n  [-89.16286614459605, 13.73824213730066],\n  [-89.17851875603228, 13.771222042275284],\n  [-89.20813770997292, 13.750639406702305]\n];\nconst poligonoApopa = [\n  [-89.21275991854958, 13.754141447970056],\n  [-89.18282031252792, 13.737363298211136],\n  [-89.16209289297451, 13.729085635114075],\n  [-89.16370502574874, 13.745416959462545],\n  [-89.15966315841744, 13.760207822838282],\n  [-89.16771538604594, 13.785880440030724],\n  [-89.16576710367909, 13.79108381726698],\n  [-89.1583636306842, 13.79685469999552],\n  [-89.16167571070835, 13.799976593457117],\n  [-89.16596194529, 13.809909606370383],\n  [-89.1707352370894, 13.813693502429459],\n  [-89.18271717364604, 13.821071923008162],\n  [-89.19197151488923, 13.823342159242074],\n  [-89.19353014078304, 13.823436751937834],\n  [-89.19089995958757, 13.812842131172502],\n  [-89.1996672302386, 13.804328247563944],\n  [-89.19089992515926, 13.79874674596951],\n  [-89.19752408520696, 13.792597489573566],\n  [-89.20814221851697, 13.778122441184976],\n  [-89.21427929750276, 13.7660119029986],\n  [-89.21275991854958, 13.754141447970056]\n];\nconst poligonoSantaTeresaLasFlores = [\n  [-89.16624481441147, 13.81141411841918],//Colonia de cerca de apopa\n  [-89.1651447962854, 13.811157747153842],\n  [-89.1627247564082, 13.813336893919583],\n  [-89.16158073755741, 13.814576007501799],\n  [-89.16246075205785, 13.815857842204124],\n  [-89.16347276873397, 13.816114208298501],\n  [-89.16650881876127, 13.816626939641068],\n  [-89.16738883326222, 13.815174197906941],\n  [-89.16730083181228, 13.813422350239634],\n  [-89.16624481441147, 13.81141411841918]\n];\nconst poligonoDistritoItalia = [\n  [-89.14781178598902, 13.813367290172053],\n  [-89.15163651618397, 13.810869855540673],\n  [-89.14985603833448, 13.805874905999701],\n  [-89.14906471484605, 13.801264088369166],\n  [-89.1467566880041, 13.80107196898966],\n  [-89.14550375914708, 13.80363354770462],\n  [-89.14383704866694, 13.802009029867236],\n  [-89.14232034531393, 13.802265187975863],\n  [-89.14199062719356, 13.805531179194091],\n  [-89.1421884580657, 13.809181350538395],\n  [-89.14482620302796, 13.81110247039392],\n  [-89.14781178598902, 13.813367290172053]\n];\nconst poligonoSanJoseLasFlores = [\n  [-89.14346407061481, 13.821975081857644],\n  [-89.14572257447587, 13.82031134098284],\n  [-89.14732042773795, 13.817964386655248],\n  [-89.1474761866441, 13.816451870180245],\n  [-89.1452176825068, 13.815090596957276],\n  [-89.14147946876304, 13.815090596957276],\n  [-89.13727397830118, 13.813880569638116],\n  [-89.13462607689932, 13.811763006709214],\n  [-89.13166665768554, 13.811536123825888],\n  [-89.13228969330935, 13.814183077056569],\n  [-89.13299060747165, 13.816451871076566],\n  [-89.13276880723429, 13.818651669193528],\n  [-89.13339184285856, 13.819861671733221],\n  [-89.13463791410616, 13.82099604340479],\n  [-89.13783097167921, 13.821676663755198],\n  [-89.138454007303, 13.821979161050763],\n  [-89.14110190870487, 13.821979161050763],\n  [-89.14346407061481, 13.821975081857644]\n];\n\nconst poligonoSoyapango = [\n    [-89.15598144963678, 13.712729761046006],\n    [-89.16200022409977, 13.71056215754821],\n    [-89.16465660220756, 13.705812272910137],\n    [-89.16773001565768, 13.699026221512156],\n    [-89.16634232292536, 13.692325648166516],\n    [-89.16157788210762, 13.690067139622613],\n    [-89.15784023465054, 13.692755327488683],\n    [-89.15174006415683, 13.689511084842763],\n    [-89.14924462341308, 13.687749079295159],\n    [-89.14647168715453, 13.68664947586332],\n    [-89.14258145789375, 13.687827983749827],\n    [-89.1414669670058, 13.688175596074117],\n    [-89.1405736962704, 13.687307189590143],\n    [-89.1407224785926, 13.685284889702487],\n    [-89.14451105929727, 13.68111879644971],\n    [-89.14139222286519, 13.679645882414562],\n    [-89.13617883332687, 13.681437761995781],\n    [-89.13058227107707, 13.683595065310001],\n    [-89.12728669108759, 13.684521996474245],\n    [-89.12392759379145, 13.686625531278835],\n    [-89.12483274620936, 13.690256548195237],\n    [-89.125590458253, 13.694390830525975],\n    [-89.12976102934563, 13.697867314700815],\n    [-89.13110542838179, 13.702865338785514],\n    [-89.13229616418816, 13.706634337017377],\n    [-89.12525057522504, 13.714749251205433],\n    [-89.11992596313635, 13.722745577731757],\n    [-89.12620380354065, 13.728839188427898],\n    [-89.14070972087258, 13.730648876657199],\n    [-89.15180334184441, 13.730659289775758],\n    [-89.15284621560063, 13.725226467829742],\n    [-89.1561890282224, 13.716227902319403],\n    [-89.15598144963678, 13.712729761046006]\n];\nconst poligonoIlopango = [\n  [-89.12171219957453, 13.674357040774282],\n  [-89.10726029221499, 13.67211026712289],\n  [-89.09425357559083, 13.695138680456395],\n  [-89.07671642609995, 13.7014822610073],\n  [-89.08677523949287, 13.708644187450787],\n  [-89.08877339080944, 13.713232506182251],\n  [-89.09349629392143, 13.713673685951846],\n  [-89.09676599607579, 13.714026629169155],\n  [-89.10003569823013, 13.713320742202768],\n  [-89.10584850206, 13.71120306856983],\n  [-89.10712005289778, 13.70679118716906],\n  [-89.10848242879517, 13.70158506054399],\n  [-89.11627527283855, 13.696677786365399],\n  [-89.1315394965794, 13.693172928286529],\n  [-89.13876545025947, 13.681939743577544],\n  [-89.12171219957453, 13.674357040774282] // cierre\n];\n\nconst poligonoSanMartin = [\n  [-89.08397087858138, 13.73873578063045],\n  [-89.07948833483553, 13.716092365319412],\n  [-89.06655299431132, 13.7231842194835],\n  [-89.06578455824054, 13.728534072888053],\n  [-89.06245466860082, 13.730649097553169],\n  [-89.06271081395751, 13.727289931821588],\n  [-89.06117394181635, 13.728160831261164],\n  [-89.0593809243178, 13.731893220797716],\n  [-89.05594417747852, 13.733655645399026],\n  [-89.0515056499401, 13.734451637148453],\n  [-89.04856939326102, 13.736109944612608],\n  [-89.04392601060542, 13.73617627666691],\n  [-89.04399429564462, 13.74247773623594],\n  [-89.04761340271438, 13.7473861241603],\n  [-89.05307620583864, 13.75056988835179],\n  [-89.05874386407966, 13.75090152796507],\n  [-89.06140698060277, 13.747319795278813],\n  [-89.06072413021249, 13.744931943054397],\n  [-89.06195326091547, 13.74188076312224],\n  [-89.06605036325834, 13.739293862053273],\n  [-89.06960118175661, 13.735711932734517],\n  [-89.06864519120998, 13.733058630656998],\n  [-89.07615654550546, 13.731731968356996],\n  [-89.07677111085695, 13.734186287708937],\n  [-89.0783416522077, 13.734451609961383],\n  [-89.07936592779353, 13.736441577510234],\n  [-89.08175590416032, 13.738365196747552],\n  [-89.08397087858138, 13.73873578063045]\n];\nconst poligonoSanMarcos = [\n  [-89.19536000852926, 13.673715570377453],\n  [-89.19706231351094, 13.673102955622454],\n  [-89.19952119848504, 13.671632673708643],\n  [-89.20122350346713, 13.668814607721544],\n  [-89.20317800177988, 13.663607223188308],\n  [-89.20317800177988, 13.660850325969605],\n  [-89.20090826180387, 13.659379967602987],\n  [-89.19819718349915, 13.658277192810331],\n  [-89.19794499553404, 13.65349844761576],\n  [-89.19605354555387, 13.648229456783696],\n  [-89.19157711393446, 13.643940656454504],\n  [-89.18703763398248, 13.642531462193034],\n  [-89.18596581232687, 13.642531462193034],\n  [-89.18508313566973, 13.64577872328205],\n  [-89.18577666732878, 13.647555507607876],\n  [-89.18281339569337, 13.648474528733615],\n  [-89.16302746693009, 13.652104376399677],\n  [-89.16369727018972, 13.653840047744438],\n  [-89.16392053794308, 13.656949760294097],\n  [-89.16570667996909, 13.65883003170886],\n  [-89.16674859627764, 13.66020406659932],\n  [-89.17173490945406, 13.659697844049091],\n  [-89.17411643215584, 13.659480891218763],\n  [-89.17597699676612, 13.658974667172103],\n  [-89.17783756137642, 13.660059431655725],\n  [-89.17910274264189, 13.662662850334556],\n  [-89.18014465882351, 13.664904656355972],\n  [-89.18059119433023, 13.666495602531242],\n  [-89.18059119433023, 13.667797277776543],\n  [-89.1818563782652, 13.66917126051014],\n  [-89.18431232355127, 13.670039034950975],\n  [-89.18773575912954, 13.673220843597093],\n  [-89.18952190115553, 13.673943976754188],\n  [-89.19197784644115, 13.674667107690013],\n  [-89.19536000852926, 13.673715570377453]\n];\n\nconst poligonoSantaTecla = [\n  [-89.25823580013608, 13.638955497418394],\n  [-89.28278957383618, 13.639374117739749],\n  [-89.30562027569817, 13.67683762825088],\n  [-89.30777411549653, 13.680813852365944],\n  [-89.30303566794029, 13.684580739570038],\n  [-89.29312800486835, 13.690858750902265],\n  [-89.2776203601652, 13.696090297735807],\n  [-89.25091275322828, 13.692951383420535],\n  [-89.23109741867741, 13.68416219952438],\n  [-89.22894357887907, 13.673489176911346],\n  [-89.22743589102035, 13.665327127340205],\n  [-89.25823580013608, 13.638955497418394] // punto final para cerrar el polígono\n];\nconst poligonoLourdes = [\n  [-89.3935205991433, 13.734506528876722],\n  [-89.38853794077559, 13.727897256256199],\n  [-89.388794257024, 13.721423316721285],\n  [-89.37636291898299, 13.71831078220805],\n  [-89.37468137267432, 13.71147406092642],\n  [-89.36788899209503, 13.708112379408774],\n  [-89.35840529090964, 13.704501630856399],\n  [-89.35020317096512, 13.702633980520233],\n  [-89.34289815788979, 13.702883001422478],\n  [-89.33854078166932, 13.703754572503328],\n  [-89.33969420478654, 13.707987871762327],\n  [-89.34417973913104, 13.706244757775906],\n  [-89.34661474348947, 13.709606466023658],\n  [-89.3484089572275, 13.712345600131854],\n  [-89.3475118503583, 13.714835694321494],\n  [-89.34456421350343, 13.715831724602523],\n  [-89.34635842724106, 13.717076756511403],\n  [-89.34687105973785, 13.722056818103525],\n  [-89.34482049447017, 13.72292831662105],\n  [-89.34456417822216, 13.733137074489562],\n  [-89.34687102445622, 13.740731106053616],\n  [-89.3519973494215, 13.74023314430923],\n  [-89.35250998191829, 13.742598453168682],\n  [-89.35878973000041, 13.745959640467376],\n  [-89.36596658495172, 13.753553256390376],\n  [-89.37852609861983, 13.748947342692944],\n  [-89.38211452609552, 13.747453506682021],\n  [-89.39044480416405, 13.740357655520228],\n  [-89.3935205991433, 13.734506528876722]\n];\n\nconst poligonoNuevoCuscatlan = [\n    [-89.27869199878852, 13.659032594739685],\n    [-89.2825834244124, 13.657608700581022],\n    [-89.28096386790783, 13.651700033768847],\n    [-89.28518053971932, 13.649967449578384],\n    [-89.28526436706049, 13.647442065328164],\n    [-89.28201648643619, 13.643276048527326],\n    [-89.28136991265912, 13.64184062918423],\n    [-89.28080249598267, 13.640958715050786],\n    [-89.27844786938977, 13.644915223716282],\n    [-89.27714935554604, 13.644600493653343],\n    [-89.27414032518645, 13.644275381817948],\n    [-89.27063244249779, 13.645367593733681],\n    [-89.26868049178536, 13.646791434972272],\n    [-89.26624809280415, 13.645847667771818],\n    [-89.26309128947165, 13.646407262338414],\n    [-89.26340444631265, 13.649562059360534],\n    [-89.26486337491657, 13.648928500534467],\n    [-89.26778852690163, 13.648136984720395],\n    [-89.27128551111265, 13.648689861810993],\n    [-89.27031970808731, 13.652959788568708],\n    [-89.27285274753609, 13.653986551146389],\n    [-89.27373948753872, 13.649963383146442],\n    [-89.27593277354117, 13.650359129724706],\n    [-89.27626266538114, 13.65398664202219],\n    [-89.27747521201836, 13.656351625203783],\n    [-89.27869199878852, 13.659032594739685]\n];\n\n// 3. Verificar si el punto está dentro del polígono\nfunction estaDentro(punto, poligono) {\n  const [x, y] = punto;\n  let dentro = false;\n  for (let i = 0, j = poligono.length - 1; i < poligono.length; j = i++) {\n    const [xi, yi] = poligono[i];\n    const [xj, yj] = poligono[j];\n    const intersecta = ((yi > y) !== (yj > y)) &&\n      (x < (xj - xi) * (y - yi) / ((yj - yi) + Number.EPSILON) + xi);\n    if (intersecta) dentro = !dentro;\n  }\n  return dentro;\n}\n\n// 4. Evaluación\nconst enSanVicente = estaDentro(punto, poligonoSanVicente);\nconst enSanMiguel = estaDentro(punto, poligonoSanMiguel);\nconst enUsulután = estaDentro(punto, poligonoUsulutan);\nconst enSantaAna = estaDentro(punto, poligonoSantaAna);\nconst enSonsonate = estaDentro(punto, poligonoSonsonate);\nconst enSanSalvador = estaDentro(punto, poligonoSanSalvador);\nconst enSoyapango = estaDentro(punto, poligonoSoyapango);\nconst enIlopango = estaDentro(punto, poligonoIlopango);\nconst enSanMartín = estaDentro(punto, poligonoSanMartin);\nconst enSantaTecla = estaDentro(punto, poligonoSantaTecla);\nconst enNuevoCuscatlán = estaDentro(punto, poligonoNuevoCuscatlan);\nconst enLourdes = estaDentro(punto, poligonoLourdes); // ✅ Nuevo\nconst enApopa = estaDentro(punto, poligonoApopa);\nconst enSanMarcos = estaDentro(punto, poligonoSanMarcos);\nconst enSantaTeresaLasFlores = estaDentro(punto, poligonoSantaTeresaLasFlores);\nconst enDistritoItalia = estaDentro(punto, poligonoDistritoItalia);\nconst enSanJoseLasFlores = estaDentro(punto, poligonoSanJoseLasFlores);\n\n\nconst dentro = enSanVicente || enSanMiguel || enUsulután || enSantaAna || enSonsonate || enSanSalvador || enSoyapango || enIlopango || enSanMartín || enSantaTecla || enNuevoCuscatlán || enApopa || enSanMarcos || enResidencialSantaTeresaLasFlores || enDistritoItalia || enSanJoseLasFlores;\n\n\n// 5. Respuesta\nreturn [{\n  json: {\n    lat: lat,\n    lng: lng,\n    zona_valida: dentro,\n    mensaje: dentro\n      ? \"✅ Zona disponible\"\n      : \"❌ Zona no disponible\"\n  }\n}];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        1344
+      ],
+      "id": "1e618068-088e-498a-8963-caa7d723d265",
+      "name": "Code7"
+    },
+    {
+      "parameters": {
+        "content": "## Verificacion de cobertura\n",
+        "height": 220,
+        "width": 200,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        672,
+        1264
+      ],
+      "typeVersion": 1,
+      "id": "9a6afc8b-a5ad-4650-a590-73b95d9ba637",
+      "name": "Sticky Note19"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.mensaje }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "Eres un agente que asiste a un agente de ventas, según el resultado proporcionaras al usuario la información correspondiente, responderás de forma amable y profesional en el caso de que se mencione que la ubicación está fuera de la zona disponible, dile que proporcione una ubicación más cercana, recordando que la disponibilidad está en la zona céntrica. Recuerda que colaboras con un agente ventas y esta información se las proporcionas al agente de ventas. Instrucciones de respuesta: Responde así dependiendo del resultado: ✅La ubicación está dentro de la zona disponible con delivery o repartidor. ❌La ubicación no está dentro de la zona disponible. Agrega el emoji de check o X según el resultado. Puedes poner emojis Sé amable y profesional En caso de  que la zona no esté disponible, dile al usuario que proporcione una ubicación más al centro de la zona del municipio.  #Importante: Si la zona está disponible, solicitar al usuario el municipio de donde viene la coordenada para más información de la forma de entrega. #Importante: Si la zona no está disponible, solicitar al usuario el municipio de donde proviene la coordenada para brindar mejor informacion."
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        912,
+        1344
+      ],
+      "id": "52061fdd-e27a-4ba7-97a5-b5fb61380f34",
+      "name": "Basic LLM Chain3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        1376
+      ],
+      "id": "7a6d6818-7953-43be-95ff-ad4e61e155cf",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "MnXmvEP7FG1Easiv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Respuesta de zona",
+        "height": 220,
+        "width": 440
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        880,
+        1264
+      ],
+      "typeVersion": 1,
+      "id": "86ae8e67-e94d-43d2-ac05-9719a9ac3c99",
+      "name": "Sticky Note16"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 460,
+        "width": 1000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1632,
+        160
+      ],
+      "typeVersion": 1,
+      "id": "85e79019-0136-4095-b904-8a322603beac",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "content": "\n",
+        "height": 220,
+        "width": 200,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1600,
+        304
+      ],
+      "typeVersion": 1,
+      "id": "14623ee0-19cf-4e27-b040-50937200f494",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 240,
+        "width": 180,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2128,
+        624
+      ],
+      "typeVersion": 1,
+      "id": "fba309f1-d194-444c-b46b-9eb13b19ca50",
+      "name": "Sticky Note21"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 220,
+        "width": 220,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1376,
+        304
+      ],
+      "typeVersion": 1,
+      "id": "43f359c8-b7a8-4b32-bdc8-fca4f65dc61c",
+      "name": "Sticky Note22"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 180,
+        "width": 340,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1040,
+        400
+      ],
+      "typeVersion": 1,
+      "id": "e82b2c0b-f256-4dd1-8348-8045d59911e7",
+      "name": "Sticky Note23"
+    },
+    {
+      "parameters": {
+        "content": "\n",
+        "height": 180,
+        "width": 180,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -960,
+        208
+      ],
+      "typeVersion": 1,
+      "id": "8c4f430f-1969-4a6f-b7a7-6cebc5423ed3",
+      "name": "Sticky Note24"
+    },
+    {
+      "parameters": {
+        "content": "## Verificacion de ubicacion",
+        "height": 300,
+        "width": 920,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        448,
+        1216
+      ],
+      "typeVersion": 1,
+      "id": "2c89fa8c-3b08-457e-bd82-6a7201c880ca",
+      "name": "Sticky Note25"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 280,
+        "width": 220
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2112,
+        608
+      ],
+      "typeVersion": 1,
+      "id": "09476f5a-9fa2-4ac8-986a-ade1f72a4ae2",
+      "name": "Sticky Note26"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 300,
+        "width": 260
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        544
+      ],
+      "typeVersion": 1,
+      "id": "91ae644b-0708-4dd0-bd87-5e0cfe745c39",
+      "name": "Sticky Note20"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 340,
+        "width": 300,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "5b7f76a9-eab0-49cf-bf64-a8507f884485",
+      "name": "Sticky Note27"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Bku-nheNu-NO_MGCYpGSpZexUKcsq5V6oGEXURtKElw",
+          "mode": "list",
+          "cachedResultName": "Historial de Consultas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Bku-nheNu-NO_MGCYpGSpZexUKcsq5V6oGEXURtKElw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Respuestas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Bku-nheNu-NO_MGCYpGSpZexUKcsq5V6oGEXURtKElw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha y Hora": "={{ $json.fecha_hora }}",
+            "Mensaje de usuario": "={{ $json.mensaje_usuario }}",
+            "Respuesta del agente": "={{ $json.respuesta_agente }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha y Hora",
+              "displayName": "Fecha y Hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Mensaje de usuario",
+              "displayName": "Mensaje de usuario",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Respuesta del agente",
+              "displayName": "Respuesta del agente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1824,
+        704
+      ],
+      "id": "1de34d23-c4fa-4c54-8803-b680772ad258",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "g5QJC2kVpTTyiUbS",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 📅 Obtener fecha y hora actual\nconst fecha_hora = new Date().toLocaleString(\"es-SV\", {\n  timeZone: \"America/El_Salvador\",\n  hour12: true\n});\n\n// 💬 Mensaje original del usuario desde el nodo Edit Fields\nconst mensaje_usuario = $('Edit Fields').first().json.Texto || \"Mensaje no disponible\";\n\n// 🔁 Reunir todas las respuestas generadas por los agentes (text)\nconst textos = $input.all()\n  .map(item => item.json.text)\n  .filter(Boolean);\n\n// 🧾 Concatenar si hay múltiples respuestas\nconst respuesta_agente = textos.join('\\n---\\n') || \"Sin respuesta\";\n\n// 🔀 Capturar el bloque output de forma segura (solo si es objeto)\nconst output_extra = $input.first().json.output;\nconst output_validado = output_extra && typeof output_extra === 'object'\n  ? output_extra\n  : { output_bruto: output_extra }; // Si es texto, lo guarda como propiedad limpia llamada 'output_bruto'\n\n// ✅ Devolver el JSON para el historial en Google Sheets incluyendo output validado\nreturn [\n  {\n    json: {\n      fecha_hora,\n      mensaje_usuario,\n      respuesta_agente,\n      ...output_validado // Solo si es objeto, si es texto va dentro de output_bruto\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        704
+      ],
+      "id": "df17bbc8-9314-434f-815c-a3fe2a952734",
+      "name": "Code5"
+    },
+    {
+      "parameters": {
+        "content": "## Historial de consultas\n",
+        "height": 240,
+        "width": 420,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1568,
+        656
+      ],
+      "typeVersion": 1,
+      "id": "5639b199-a478-4f41-96b2-75a700c206b6",
+      "name": "Sticky Note28"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 180,
+        "width": 380,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1584,
+        688
+      ],
+      "typeVersion": 1,
+      "id": "497eea75-45da-4897-8256-b16dd5da409f",
+      "name": "Sticky Note29"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Edit Fields').item.json.Texto }}",
+        "options": {
+          "systemMessage": "\n🧠 Eres un agente Interno  que colabora con un agente de ventas humano. Tu responde a las consultas de los usuarios, dado respuestas claras, útiles y amables a las preguntas generales que hacen los agentes de ventas, sobre los servicios de entrega de medicamentos naturales en El Salvador.     \n\n\n#OBJETIVOS PRINCIPALES\n- Proporcionar información verificada de las zonas de entregas.\n- Informar la disponibilidad de entrega y los costos de envios.\n\n#INSTRUCCIONES \n- Toma en cuenta cada indicacion.\n- El usuario realizará la consulta\n- Identifica su consulta\n- Si no comprendes su consulta o no estas seguro de la respuesta tienes información exacta, solicita mas detalles sobre la zona de entrega.\n- Responde su consulta con información real.\n - Tus respuestas deben de ser breves y concisas. \n- Analiza la consulta y responde según la intención del usuario.\n - Puedes utilizar emojis para hacer más agradable la conversación .\n- Si para ti la pregunta del usuario no tiene sentido, puedes pedir que sea mas especifico, que reformule la pregunta o que de mas datos de su consulta. \n\n##Recuerda que las entregas se realizan en municipios y zonas centricas.\n\n📌 Importante:  No estás hablando directamente con el cliente, sino asistiendo a un agente humano, quien luego copiará y enviará tu respuesta. \n- Recuerda que tú no tomas pedidos, tú proporcionas información de entrega al agente de ventas.\n\nSi no estás seguro de la zona proporcionada por el usuario, solicita más información de la ubicación del cliente, recuérdale al usuario que si está en una zona céntrica de un municipio disponible con repartidor o delivery, puede compartir las coordenadas para verificar la disponibilidad de entrega.\n\n📦 TIPOS DE ENTREGA 1. Repartidor Entrega personalizada a domicilio o punto céntrico.   Exclusivo para zonas céntricas de San Salvador y Santa Tecla entre otros,   Entrega directa por repartidor autorizado.   Costo de envío: Gratis   Días de entrega: Lunes a domingo (según la zona).   Horarios:   Mañana: 10:00 AM – 12:00 MD   Tarde: 2:00 PM – 4:00 PM      Zonas con Repartidor: Nuevo Cuscatlán, San Salvador Centro, Mejicanos, San Marcos hasta la Gasolinera Uno, Merliot, Autopista a Comalapa, Cuscatancingo, Soyapango, Ilopango, Antiguo Cuscatlán, Apopa, Santa Tecla, San Martín,   Estas zonas son con un costo adicional Los Planes Hospital Zaldaña, Planes de Renderos hasta el Mirador, Lourdes Colon. (Municipios de san salvador que aplican con repartidor y envío gratis:Apopa, Ayutuxtepeque, Cuscatancingo, Delgado, Ilopango, Mejicanos, San Marcos, San Martín, San Salvador, Soyapango, Tonacatepeque) \nImportante: Importante: Lourdes Colon se entrega Martes, jueves y sábado de 10am a 2pm, el costo de envío es de $2(con repartidor)  \n#Importante: En Tonacatepeque se puede entregar con repartidor y el costo de envío de $3, los envíos no se realizan todos los días, debe consultarse con David o Sonia para verificar la disponibilidad.\n- San Jose las flores de Tonacatepeque debe consultarse con logística para verificar su disponibilidad\n\n2. Delivery Entrega rápida y personalizada en cabeceras departamentales.   El repartidor entrega a domicilio, lugar de trabajo o punto accesible.   Costo de envío: $1.00 en zona central   Días de entrega: Lunes a sábado.   Horarios:   Mañana: 10:00 AM – 12:00 MD   Tarde: 2:00 PM – 4:00 PM   Zonas disponibles y nombres de repartidores:   Sonsonate Centro → Melvin Delivery   Santa Ana Centro → Melara Delivery→ Ususlutan Centro Tsunami Delivery →  San Miguel Centro → Yaya Delivery   San Vicente Centro → Martita Delivery Zonas con Delivery:  San Vicente Centro, Usulutan Centro, San Miguel Centro, Sonsonate Centro, Santa Ana Centro.    Zonas disponibles en San Miguel, por el costo de $1 con el delivery Yaya: CD Águila San Miguel, CD Toledo, C. Las Gardenias, Centro Escolar Cantón El Jalacatal, Col. La Confianza, Col. Las Violetas, Colonia Belén, Colonia Ciudad Jardín, Colonia El Sitio #1, Colonia El Sitio #2, Colonia Floresta, Colonia Guatemala N°1, Colonia Hermosa Provincia, Colonia La Esperanza, Colonia La Presita, Colonia Las Brisas, Colonia López, Colonia Milagro de La Paz, Colonia Nueva La Pradera, Colonia Panamericana, Colonia Río Grande, Colonia San Carlos, Colonia San Fernando, Colonia Santa Julia, Colonia Unidas, Colonia Urbesa, El Encuentro El Sitio, El Triángulo, Estadio Juan Francisco Barraza, Ferretería La Coquera #1, Gasolinera Uno Palo Blanco, Hotel Continental Plaza, Hotel Trópico Inn, Jardines del Río, Mined, Parque de Los Manantiales, Parque Memorial El Edén, Parque Recreativo Altos de La Cueva, Plaza Ex-Tapachulteca, Plaza Metropolitana, Prados de San Miguel, Redondel Los Alvarado, Redondel Los Leones, Residencial El Sitio #1, Residencial El Sitio #2, Residencial La Pradera, Residencial Montecarlo, Riverside Gardens, Satélite de Oriente, Texaco El Sitio, Texaco Río Grande, Universidad Gerardo Barrios, Urb. El Molino, Urbanización Las Palmeras, Urbanización Nueva Belén, Urbanización Nueva Metrópolis, Urbanización Santa Emilia, Walmart San Miguel.  Zonas disponibles en San Miguel por el costo de $2 con el delivery Yaya: Bodega Lido, Campus UNIVO, Cantón El Jalacatal, Centro Escolar Caserío Las Lomitas, Ciudad Pacífica, Col. Las Pampas, Colonia Carmenza, El Jaguar de Piedra, Bar & Restaurant, Facultad Disciplinaria Oriental UES, Ferretería La Coquera #2, Gasolinera DLC San Andrés, Gasolinera Uno El Jalacatal, Hato Nuevo, Indulogic, Ingenio Chaparrastique, Lácteos La Migueleña, Periférico Gerardo Barrios, Plaza Todito, Pricesmart San Miguel, Puma Energy Chaparrastique, Puente Alegría, Rancho Los 3 Potrillos, Redondel El Papalón, Remar El Papalón, Residencial San Andrés, Turicentro El Papalón.  Zona disponible en Sonsonate por el costo de $2.50 con Melvin Delivery: Lotificación San Antonio, Colonia Ivu, Residencial las Brisas, Jardines del Mirador, El Sauce.  Zona disponible en Sonsonate por el costo de $3.00 con Melvin Delivery: Araisal, Ponderosa, Buenos Aires 1, Buenos Aires 2, Ceiba Preñada. Zona disponible en Sonsonate por el costo de $4.00 con Melvin Delivery: Loma del muerto.  3. Encomienda Entrega a puntos preestablecidos en diferentes municipios del país.   Costo de envío: $1.00   Ideal para: Clientes fuera de zonas céntricas o sin cobertura de delivery/repartidor.   Requiere consultar:   Municipio específico   Días y horarios de entrega   Ubicación exacta del punto de entrega     Zonas con encomiendas: Metapán, Apaneca, Ataco, Juayua, Atiquizaya, Chalchuapa, Ahuachapán, Ciudad Real, El Congo, Quezaltepeque, Candelaria de La Frontera, Sensuntepeque, Ilobasco, La Unión, Osicala, Perquín, Ciudad El Triunfo, San Marcos Lempa, Puerto el Triunfo, Ciudad Barrios, Berlín, Chinameca, Moncagua, Chapeltique, Pasaquina, Armenia, Lolotique, San Julián, San Francisco Gotera, Anamoros, Lislique, Jucuapa, Corinto, San Rafael Cedros, Tepetitán, Verapaz, Guadalupe, Apastepeque, San Sebastián(San Vicente), Santo Domingo, Tejutepeque, La Laguna, El Coyolito, Comalapa, Nueva Concepción, San Pablo Tacachico, Desvío de Amayo, Agua Caliente, Suchitoto, Chalatenango, Guazapa, San Rafael, San Ignacio, Citalá, Frontera El Poy, Tejutla, El Paraíso, La Reina (chalate), Dulce Nombre de María, La Palma, Concepción Quezalte, El Refugio, Ciudad Marsella, Ciudad Versalles, San Juan Opico, Ciudad Arce, Ateos, Cara Sucia, Izalco, Puente Arce, Los Naranjos, Olocuilta, Cuyultitán, Santa Cruz Michapa, San Bartolomé Perulapía, Cojutepeque, San Pedro Perulapán, Tonacatepeque, Santiago Texacuangos, Las Isletas, Tapalhuaca, Costa del Sol, Rosario de la Paz, San Antonio Masahuat, San Juan Nonualco, San Juan Talpa, Santa María Ostuma, Santiago Nonualco, San Luis Talpa, San Luis La Herradura, San Pedro Masahuat, San Pedro Nonualco, San Rafael Obrajuelo, Tecoluca, Paraíso de Osorio, Santa Cruz Analquito, San Emigdio, San Juan Tepezontes, San Miguel Tepezontes, San Ramón, Panchimalco, Istagua, Rosario de Mora, Metalío, Zacatecoluca, Sonzacate, San Alejo, Chirilagua, Intipucá, Santa Rosa de Lima, Jocoro, Jiquilisco, Delicias de Concepción, Sociedad, Cacaopera, Playa Las Tunas, Polorós, Meanguera, Santa Elena, San Rafael Oriente, Nueva Esparta, San Esteban Catarina, San Lorenzo, Aguilares, Santa Rita, Coatepeque, Concepción Quezaltepeque, El Paisnal, Caluco, El Tránsito, El Cuco, Nueva Guadalupe, Mercedes Umaña, Montelimar, Turin, Zaragoza, Puerto de La Libertad, Concepción de Oriente, Estanzuelas, San Jorge, Tacachico, San Isidro, Santiago de María, Jayaque, Tepecoyo, Sacacoyo, Tamanique, San Ildefonso, Ingenio La Cabaña, Nahuizalco, Acajutla, Nejapa, Reubicación 2, Guaymango, Salcoatitán, Sesori, San Luis de la Reina, El Carmen (La Unión), Conchagua, Dolores, San José Villanueva, San Simón, Jujutla, San Antonio Pajonal, Metrolourdes, Santo Tomas, Texistepeque, Desvío Tierra Blanca.(Costo de envio es de $1)       🧭 Instrucción especial para el asistente:  – Cuando sea necesario, pregunta al agente por la ubicación o municipio donde reside el cliente para proporcionar:     Disponibilidad de la zona   Forma de envío más adecuado     - si el usuario menciona un municipio dentro de San Salvador, recuerda que el envío es gratis y con repartidor, de igual forma la zona de Santa Tecla, Nuevo cuscatla o  – Si el usuario menciona una zona no especificada: Menciona al usuario, si le puede entregar, si la ubicación tiene cobertura con repartidor o delivery y está en zona céntrica. Si no está seguro del punto anterior, puede proporcionar las coordenadas de la ubicación del cliente para poder verificar la cobertura.   – Si el usuario menciona calles avenidas o colonias, siempre solicita más información para verificar que la ubicación esté disponible. – Puedes sugerir al usuario que proporcione las coordenadas de la ubicación del cliente para verificar la entrega con repartidor o delivery – Recuerda que coordenada es solo para delivery y repartidor.   Cuando el dato de entrada sea ayuda - Mostrar guía de uso(puedes personalizar la información y responder de forma intuitiva) Guía de como utilizar el agente y realizar consultas   ¿Para qué sirve el agente? 🔹 Consulta de entrega por encomienda: Puedes verificar las fechas y horarios de entrega por encomienda en distintas zonas del país. Simplemente, proporciona el municipio específico.  🔹 Servicio de delivery o repartidor: Puedes consultar si hay servicio de delivery o repartidor en un municipio en particular y conocer el tipo de entrega disponible.  🔹 Verificación de cobertura: Si una ubicación específica no está clara, puedes sugerir al cliente que proporcione sus coordenadas. Esto se hace abriendo Google Maps, ubicando el lugar, haciendo clic derecho, y copiando las coordenadas generadas.  🔹 Preguntas generales: Responde a preguntas generales sobre envíos y zonas disponibles para asegurarte de que el cliente reciba la información adecuada.  Si necesitas ayuda para extraer una coordenada del cliente, sigue los pasos indicados en el proceso de Google Maps que te proporcioné anteriormente para verificar la cobertura.    #Importante: Recuerda que todo los municipios de encomienda el costo de envío es de $1. - Si el usuario menciona caserío, calle, avenida o colonia que no este registrado, solicitarle más información del municipio o pídele las coordenadas para verificar la disponibilidad \n#Importante: \n-En distrito Italia se puede entregar en la PNC por el costo de $3 de 10:am a 2:pm\n- \n#MEMORIA\nLleva la secuencias de las conversaciones y conserva las palabras claves para una mejor interacción con el usuario\n\nsi recibes mensajes complejos y no tienes información de la colonia la palma, \n- ¿Podemos entregar en la colonia La Palma, municipio de Colón, departamento de La Libertad? ¿Cuál es el precio de esa opción\n- ¿Hay envíos al caserío El Espino, municipio de Ciudad Barrios, departamento de San Miguel? ¿Cuál es el precio de esa opción?\n- ¿Se realizan entregas al cantón El Rosario, municipio de San Luis Talpa, departamento de La Paz? ¿Cuál es el precio de esa opción?\n\nResponde con la siguiente lógica:\n- Si no se encuentra colonia o cantón pero si el municipio. \nActualmente no realizamos entregas directas en el cantón [nombre del cantón],  \npero sí podemos entregarte en el municipio de [nombre del municipio].\n\n- Si no se encuentra cantón y municipio\nActualmente no realizamos entregas directas en el cantón [nombre del cantón] ni en su municipio,  \n- si se encuentra el departamento\npero sí realizamos entregas en el departamento de [nombre del departamento]. \n\nActualmente no tenemos cobertura registrada en el cantón [nombre del cantón],  \ny no encontramos coincidencias en el municipio ni el departamento mencionados. Pregunta al cliente que otro municipio tiene cerca para verificar la disponibilidad😊   \n-Recuerda que en algunas cabeceras departamentales se cuenta con delivery(Usulután, san miguel, sonsonate, Santa Ana, San Vicente, san Salvador)\n\nRecuerda proporcionar información 100% comprobada en estos conocimientos, si no estás seguro de la respuesta que tienes que dar, solicita más información al usuario.(Por ejemplo si no estas seguro de que departamento es un municipio, por ejemplo San Sebastián, si es del municipio de San vicente si hay entregas con encomienda, pero si es de otro municipio no hay).\n\n\nResponde esto cuando el agente de ventas te solicite ayuda para extraer una coordenada, recuerda que los agentes de venta solo utilizan Google Maps en el navegador. La coordenada la obtiene un vendedor.  En caso de que necesites validar si hay servicio de delivery o repartidor en una ubicación específica del cliente, sigue estos pasos sencillos: 📌 Paso a paso:      Abre el mapa de Google (https://maps.google.com)      Ubica el lugar exacto donde el cliente quiere recibir el medicamento.      Presiona clic derecho sobre la ubicación deseada.      Haz clic sobre las coordenadas que aparecerán en la parte superior del menú.     🔹 Estas se copiará automáticamente al portapapeles.      Pégalas en el chat y envíamelas para verificar si hay cobertura.  🔎 Ejemplo de coordenada válida: 13.6983, -89.1914 o 13°44'54.4\"N 89°13'31.5\"W  ✅ Una vez compartida, proporcionaré la disponibilidad de la zona.   📨 Plantilla de entrada del agente de ventas: 📩 Consulta del cliente: {{ $json.text }}\n\n\n\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        704,
+        976
+      ],
+      "id": "53bed0b9-cb98-4552-9c87-83ccc011f670",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        1056
+      ],
+      "id": "27dabea3-d1d1-4150-ba45-873755819583",
+      "name": "OpenAI Chat Model5",
+      "credentials": {
+        "openAiApi": {
+          "id": "MnXmvEP7FG1Easiv",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        1056
+      ],
+      "id": "450155d3-37da-44ec-9762-aedf8aae6137",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "AF0oH1L8VHVHaki4",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c3e90816-082d-4f27-8819-fd4ebe8445b6",
+              "name": "text",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1248,
+        976
+      ],
+      "id": "168d0beb-df56-422a-830b-68d1c3d900e4",
+      "name": "Adaptar output a text"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "OpenAI1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Sheets2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Sheets2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets2": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code6": {
+      "main": [
+        [
+          {
+            "node": "Code7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code7": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain3": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code5": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Adaptar output a text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adaptar output a text": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0ecf89f4-ee7e-4d7c-bdaa-074c75883866",
+  "meta": {
+    "instanceId": "9f4e419b94e814f148f871c7ac1f5e4beb2f905824bcdae40ce934f1dc28942f"
+  },
+  "id": "VQA7ZZQxijJdfI3g",
+  "tags": []
+}
